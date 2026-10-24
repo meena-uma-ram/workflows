@@ -1,0 +1,587 @@
+<title>CRM Transformation Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one-screen app. Header (facts + grouped tabs + Map/Reference switch), node canvas left, detail rail right; stacks on phones. */
+:root {
+  --bg: #f3f5f6; --surface: #ffffff; --ink: #18222d; --muted: #5b6875; --line: #d5dce2;
+  --accent: #0d6b67; --accent-soft: #dcefed;
+  --gate: #a8650b; --gate-soft: #fbf0dc;
+  --post: #2f7d4f; --post-soft: #e2f2e8;
+  --exit: #7c8792; --exit-soft: #eef1f3;
+  --esc: #b4442f; --esc-soft: #fbe7e4;
+  --prop: #5b4bc4; --prop-soft: #ece9fb;
+  --edge: #94a2ae; --grid: #e4e9ed;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10171e; --surface: #18212a; --ink: #e6ecf1; --muted: #9aa8b5; --line: #2c3945;
+    --accent: #4fc2bb; --accent-soft: #163a39; --gate: #e3a548; --gate-soft: #3a2c15;
+    --post: #6cc28f; --post-soft: #17372a; --exit: #8d99a4; --exit-soft: #222c35;
+    --esc: #f08a72; --esc-soft: #3d221d; --prop: #a99cf5; --prop-soft: #2a2546;
+    --edge: #5e6e7c; --grid: #1a242d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10171e; --surface: #18212a; --ink: #e6ecf1; --muted: #9aa8b5; --line: #2c3945;
+  --accent: #4fc2bb; --accent-soft: #163a39; --gate: #e3a548; --gate-soft: #3a2c15;
+  --post: #6cc28f; --post-soft: #17372a; --exit: #8d99a4; --exit-soft: #222c35;
+  --esc: #f08a72; --esc-soft: #3d221d; --prop: #a99cf5; --prop-soft: #2a2546;
+  --edge: #5e6e7c; --grid: #1a242d; color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; }
+.app { height: 100%; display: flex; flex-direction: column; }
+header {
+  padding-block: 12px 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  border-bottom: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; gap: 8px;
+}
+.titlebar { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; }
+h1 { font-family: var(--font-display); font-stretch: 80%; font-weight: 800; font-size: 1.4rem; margin: 0; letter-spacing: -0.01em; }
+.facts { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.fact { font-size: 0.76rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.fact b { color: var(--ink); font-weight: 600; }
+.views { display: flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.views button { font: inherit; font-size: 0.82rem; border: 0; background: var(--surface); color: var(--muted); padding: 6px 14px; cursor: pointer; }
+.views button[aria-pressed="true"] { background: var(--ink); color: var(--surface); font-weight: 600; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin; align-items: flex-end; }
+.tgroup { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 6px 12px 12px; white-space: nowrap; border-left: 1px solid var(--line); margin-left: 4px; }
+.tgroup:first-child { border-left: 0; margin-left: 0; padding-left: 0; }
+.tab {
+  font: inherit; font-size: 0.83rem; background: none; border: 0; color: var(--muted); cursor: pointer;
+  padding: 7px 10px 9px; border-bottom: 3px solid transparent; white-space: nowrap; display: flex; gap: 6px; align-items: center;
+}
+.tab .k { font-family: var(--font-mono); font-size: 0.72rem; }
+.tab .pct { font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent); }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+button:focus-visible, input:focus-visible, .node:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 360px; }
+.stage { position: relative; min-width: 0; overflow: hidden; }
+svg#canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+svg#canvas.dragging { cursor: grabbing; }
+.toolbar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
+.toolbar > * { pointer-events: auto; }
+.search { flex: 1 1 180px; max-width: 300px; }
+.search input { width: 100%; box-sizing: border-box; font: inherit; font-size: 0.85rem; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); }
+.btns { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.btns button { font: inherit; font-size: 0.82rem; border: 0; background: none; color: var(--ink); padding: 7px 10px; cursor: pointer; }
+.btns button + button { border-left: 1px solid var(--line); }
+.btns button:hover { background: var(--accent-soft); }
+.legend {
+  position: absolute; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px 12px; flex-wrap: wrap; max-width: calc(100% - 24px);
+  font-size: 0.72rem; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px;
+}
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.sw { width: 12px; height: 10px; border-radius: 2px; border: 1.5px solid; display: inline-block; }
+.bar-sw { width: 4px; height: 12px; border-radius: 1px; display: inline-block; }
+
+aside {
+  border-left: 1px solid var(--line); background: var(--surface); overflow-y: auto; min-width: 0;
+  padding-block: 18px 24px; padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 14px;
+}
+.eyebrow { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.chip { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+aside h2 { font-family: var(--font-display); font-stretch: 85%; font-weight: 700; font-size: 1.25rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+aside p { margin: 0; line-height: 1.55; }
+.muted { color: var(--muted); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 0.86rem; line-height: 1.45; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; }
+.status-note { font-size: 0.82rem; line-height: 1.45; padding: 8px 10px; border-radius: 6px; border-left: 3px solid; }
+.status-note.proposed { background: var(--prop-soft); border-color: var(--prop); }
+.status-note.validate { background: var(--esc-soft); border-color: var(--esc); }
+ul.items { margin: 0; padding-left: 18px; line-height: 1.55; font-size: 0.88rem; }
+h3 { font-size: 0.7rem; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 6px; font-weight: 500; }
+.links { display: flex; flex-direction: column; gap: 4px; }
+.link { text-align: left; font: inherit; font-size: 0.86rem; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; color: var(--ink); cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+.link:hover { border-color: var(--accent); }
+.link .via { font-family: var(--font-mono); font-size: 0.72rem; color: var(--gate); white-space: nowrap; }
+.link .via.loop { color: var(--muted); }
+.reflink { font: inherit; font-size: 0.84rem; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+.done-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; background: var(--accent-soft); cursor: pointer; }
+.done-row input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
+.walk { display: flex; gap: 8px; }
+.walk button { flex: 1; font: inherit; font-size: 0.85rem; padding: 8px 10px; border-radius: 6px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.walk button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+.walk button:disabled { opacity: 0.45; cursor: default; }
+.progress { display: flex; flex-direction: column; gap: 6px; }
+.bar { height: 6px; background: var(--grid); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+.pnum { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hint { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+kbd { font-family: var(--font-mono); font-size: 0.72rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; }
+
+/* Reference view */
+.ref { grid-column: 1 / -1; overflow-y: auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.ref-inner { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+.ref-head { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; }
+.ref-head h2 { font-family: var(--font-display); font-stretch: 80%; font-weight: 800; font-size: 1.8rem; margin: 0 0 10px; line-height: 1.1; text-wrap: balance; }
+.ref-head p { margin: 0 0 10px; line-height: 1.6; max-width: 65ch; }
+.statuses { display: flex; flex-direction: column; gap: 8px; }
+.statuses div { font-size: 0.84rem; line-height: 1.45; padding: 8px 12px; border-left: 4px solid; background: var(--surface); border-radius: 0 6px 6px 0; }
+.toc { display: flex; flex-wrap: wrap; gap: 6px; }
+.toc button { font: inherit; font-size: 0.8rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+.toc button:hover { border-color: var(--accent); }
+section.tbl h3 { font-family: var(--font-display); font-stretch: 85%; font-size: 1.15rem; text-transform: none; letter-spacing: 0; color: var(--ink); font-weight: 700; margin: 0 0 4px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+section.tbl .note { color: var(--muted); font-size: 0.86rem; line-height: 1.5; margin: 0 0 10px; max-width: 80ch; }
+.tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.84rem; }
+th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); line-height: 1.45; }
+th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--bg); position: sticky; top: 0; }
+td:first-child { font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+table.raci td:not(:first-child) { font-family: var(--font-mono); font-size: 0.76rem; }
+table.raci td.has-a { color: var(--accent); }
+section.tbl.flash .tw { outline: 2px solid var(--accent); outline-offset: 3px; transition: outline-color 1.2s; }
+
+/* SVG */
+.edge path { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.edge.loop path { stroke-dasharray: 5 4; }
+.edge text { font-family: var(--font-mono); font-size: 11px; fill: var(--gate); }
+.edge .lbg { fill: var(--bg); }
+.edge.loop text { fill: var(--muted); }
+.edge.hot path { stroke: var(--accent); stroke-width: 2.4; }
+.node { cursor: pointer; }
+.node rect.ring { fill: none; stroke: none; }
+.node rect.box { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+.node rect.stripe { fill: none; }
+.node.s-proposed rect.stripe { fill: var(--prop); }
+.node.s-validate rect.stripe { fill: var(--esc); }
+.node text { font-family: var(--font-body); font-size: 13px; fill: var(--ink); }
+.node text.ttl { font-weight: 600; }
+.node text.det { font-size: 11.5px; fill: var(--muted); }
+.node text.own { font-family: var(--font-mono); font-size: 10.5px; fill: var(--accent); }
+.node text.tag { font-family: var(--font-mono); font-size: 10px; fill: var(--muted); letter-spacing: .05em; }
+.node text.tag tspan.sp { fill: var(--prop); }
+.node text.tag tspan.sv { fill: var(--esc); }
+.node.t-decision rect.box { fill: var(--gate-soft); stroke: var(--gate); stroke-dasharray: 5 3; }
+.node.t-terminal rect.box { fill: var(--accent-soft); stroke: var(--accent); }
+.node.t-system rect.box { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 3; }
+.node.t-group rect.box { fill: var(--bg); stroke: var(--accent); }
+.node.k-exit rect.box { fill: var(--exit-soft); stroke: var(--exit); }
+.node.k-post rect.box { fill: var(--post-soft); stroke: var(--post); }
+.node.k-escalation rect.box { fill: var(--esc-soft); stroke: var(--esc); }
+.node:hover rect.box { stroke-width: 2.5; }
+.node.sel rect.box { stroke: var(--accent); stroke-width: 3; }
+.node.match rect.ring { stroke: var(--gate); stroke-width: 3; }
+.node .check { display: none; }
+.node.done .check { display: block; }
+.node.done text.ttl { fill: var(--muted); }
+.check circle { fill: var(--post); }
+.check path { stroke: var(--surface); stroke-width: 2; fill: none; }
+.dim { opacity: 0.22; }
+.node, .edge { transition: opacity .2s; }
+
+@media (max-width: 860px) {
+  main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(340px, 60%) auto; overflow-y: auto; }
+  aside { border-left: 0; border-top: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); overflow: visible; }
+  .legend { display: none; }
+  .ref { grid-row: 1 / -1; }
+  .ref-head { grid-template-columns: minmax(0, 1fr); }
+  .facts { display: none; }
+  h1 { font-size: 1.15rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header>
+    <div class="titlebar">
+      <h1 id="title">Global CRM Transformation</h1>
+      <div class="facts" id="facts"></div>
+      <div class="views" role="group" aria-label="View">
+        <button id="v-map" aria-pressed="true">Map</button>
+        <button id="v-ref" aria-pressed="false">Reference</button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+  </header>
+  <main id="main">
+    <div class="stage" id="stage">
+      <svg id="canvas" aria-label="Workflow node graph">
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.2" fill="var(--grid)"></circle></pattern>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--edge)"></path></marker>
+          <marker id="arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"></path></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dots)"></rect>
+        <g id="viewport"></g>
+      </svg>
+      <div class="toolbar">
+        <label class="search"><input id="q" type="search" placeholder="Search all workflows, e.g. DPIA" aria-label="Search nodes"></label>
+        <div class="btns">
+          <button id="zin" title="Zoom in" aria-label="Zoom in">+</button>
+          <button id="zout" title="Zoom out" aria-label="Zoom out">−</button>
+          <button id="fit" title="Fit to screen">Fit</button>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="border-color:var(--gate);background:var(--gate-soft);border-style:dashed"></i>Decision</span>
+        <span><i class="sw" style="border-color:var(--post);background:var(--post-soft)"></i>Post-sale</span>
+        <span><i class="sw" style="border-color:var(--esc);background:var(--esc-soft)"></i>Escalation</span>
+        <span><i class="sw" style="border-color:var(--exit);background:var(--exit-soft)"></i>Exit / hold</span>
+        <span><i class="bar-sw" style="background:var(--prop)"></i>Proposed</span>
+        <span><i class="bar-sw" style="background:var(--esc)"></i>Validate in Month 1</span>
+        <span>┈ loop back</span>
+      </div>
+    </div>
+    <aside id="panel" aria-live="polite"></aside>
+    <div class="ref" id="ref" hidden></div>
+  </main>
+</div>
+
+<script id="data" type="application/json">/*DATA*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const P = DATA.programme, STATUS = DATA.status, TABLES = DATA.tables;
+  const TYPE_NAME = { step: 'Step', decision: 'Decision', terminal: 'Start / end', system: 'System', group: 'Group' };
+  const KIND_NAME = { exit: 'Exit / hold', post: 'Post-sale', escalation: 'Escalation' };
+  const flows = DATA.workflows;
+  const tableById = Object.fromEntries(TABLES.map(t => [t.id, t]));
+
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  let done = store.get('crm-model-done', {});
+
+  const $ = id => document.getElementById(id);
+  const svg = $('canvas'), vp = $('viewport'), panel = $('panel'), tabsEl = $('tabs'), q = $('q'), refEl = $('ref'), stage = $('stage');
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function wrap(text, max) {
+    const lines = []; let cur = '';
+    text.split(' ').forEach(w => { if ((cur + ' ' + w).trim().length > max && cur) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); });
+    if (cur) lines.push(cur); return lines;
+  }
+
+  $('title').textContent = P.name;
+  $('facts').innerHTML = P.facts.map(([k, v]) => `<span class="fact">${esc(k)}: <b>${esc(v)}</b></span>`).join('');
+
+  let cur = null, layout = null, order = [], selected = null, view = 'map';
+  let t = { x: 0, y: 0, k: 1 }, shown = null;
+
+  function pct(f) { const n = f.nodes.length, d = f.nodes.filter(x => done[x.id]).length; return n ? Math.round(d / n * 100) : 0; }
+  function buildTabs() {
+    tabsEl.innerHTML = ''; let group = null;
+    flows.forEach(f => {
+      if (f.group !== group) { group = f.group; const g = document.createElement('span'); g.className = 'tgroup'; g.textContent = group; tabsEl.appendChild(g); }
+      const b = document.createElement('button');
+      b.className = 'tab'; b.setAttribute('role', 'tab'); b.id = 'tab-' + f.id;
+      b.setAttribute('aria-selected', String(view === 'map' && cur && cur.id === f.id));
+      const p = pct(f);
+      b.innerHTML = `<span class="k">${f.id}</span>${esc(f.name)}${p ? `<span class="pct">${p}%</span>` : ''}`;
+      b.onclick = () => { setView('map'); show(f.id); };
+      tabsEl.appendChild(b);
+    });
+  }
+  function setHash(h) { try { history.replaceState(null, '', '#' + h); } catch (e) {} }
+
+  function setView(v) {
+    view = v;
+    $('v-map').setAttribute('aria-pressed', String(v === 'map'));
+    $('v-ref').setAttribute('aria-pressed', String(v === 'ref'));
+    stage.hidden = panel.hidden = v !== 'map';
+    refEl.hidden = v !== 'ref';
+    buildTabs();
+    if (v === 'ref') setHash('reference'); else if (cur) { setHash(cur.id.toLowerCase()); requestAnimationFrame(() => { if (!selected) fit(false); }); }
+  }
+  $('v-map').onclick = () => { setView('map'); if (!cur) show(flows[0].id); };
+  $('v-ref').onclick = () => setView('ref');
+
+  function show(id, nodeId) {
+    cur = flows.find(f => f.id === id) || flows[0];
+    selected = null; shown = null;
+    if (view === 'map') setHash(cur.id.toLowerCase());
+    store.set('crm-model-tab', cur.id);
+    buildTabs(); draw(); fit(false);
+    const tab = $('tab-' + cur.id); if (tab) tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    if (nodeId) select(nodeId); else renderPanel();
+  }
+
+  function draw() {
+    vp.innerHTML = '';
+    const g = new dagre.graphlib.Graph({ multigraph: true });
+    const lr = cur.direction === 'LR';
+    g.setGraph({ rankdir: lr ? 'LR' : 'TB', nodesep: 30, ranksep: lr ? 70 : 52, edgesep: 14, marginx: 30, marginy: 30 });
+    cur.nodes.forEach(n => {
+      const W = n.type === 'group' ? 250 : 224;
+      const lines = wrap(n.label, n.type === 'group' ? 30 : 27);
+      const dlines = n.detail ? wrap(n.detail, 34) : [];
+      const olines = n.owner ? wrap(n.owner, 30) : [];
+      const mlines = n.type === 'group' && n.items ? n.items.flatMap(m => wrap('• ' + m, 34)) : [];
+      let h = 30 + lines.length * 17;
+      if (dlines.length) h += 4 + dlines.length * 15;
+      if (mlines.length) h += 4 + mlines.length * 15;
+      if (olines.length) h += 6 + olines.length * 14;
+      g.setNode(n.id, { width: W, height: h + 10, data: n, lines, dlines, olines, mlines });
+    });
+    cur.edges.forEach((e, i) => g.setEdge(e.from, e.to, { label: e.label || '', width: e.label ? e.label.length * 6.8 + 10 : 0, height: e.label ? 16 : 0, labelpos: 'c', data: e }, 'e' + i));
+    dagre.layout(g);
+    layout = g;
+
+    const eg = el('g', {}, vp), ng = el('g', {}, vp);
+    g.edges().forEach(k => {
+      const e = g.edge(k), d = e.data;
+      const grp = el('g', { class: 'edge' + (d.style === 'loop' ? ' loop' : ''), 'data-from': d.from, 'data-to': d.to }, eg);
+      el('path', { d: smooth(e.points), 'marker-end': 'url(#arrow)' }, grp);
+      if (e.label) {
+        el('rect', { class: 'lbg', x: e.x - e.width / 2, y: e.y - 9, width: e.width, height: 18, rx: 3 }, grp);
+        const tx = el('text', { x: e.x, y: e.y + 4, 'text-anchor': 'middle' }, grp); tx.textContent = e.label;
+      }
+    });
+    g.nodes().forEach(id => {
+      const n = g.node(id), d = n.data, st = d.status || 'established';
+      const x = n.x - n.width / 2, y = n.y - n.height / 2;
+      const cls = ['node', 't-' + d.type, d.kind ? 'k-' + d.kind : '', 's-' + st, done[id] ? 'done' : ''].join(' ');
+      const grp = el('g', { class: cls, transform: `translate(${x},${y})`, 'data-id': id, tabindex: 0, role: 'button', 'aria-label': d.label }, ng);
+      const rx = d.type === 'terminal' ? Math.min(22, n.height / 2) : d.type === 'system' ? 16 : 8;
+      el('rect', { class: 'ring', x: -5, y: -5, width: n.width + 10, height: n.height + 10, rx: rx + 4 }, grp);
+      el('rect', { class: 'box', width: n.width, height: n.height, rx }, grp);
+      el('rect', { class: 'stripe', x: 0, y: 8, width: 4, height: n.height - 16, rx: 2 }, grp);
+      const tag = el('text', { class: 'tag', x: 14, y: 18 }, grp);
+      const tagText = (TYPE_NAME[d.type] || 'Step').toUpperCase() + (d.kind ? ' · ' + KIND_NAME[d.kind].toUpperCase() : '');
+      tag.appendChild(document.createTextNode(tagText));
+      if (st !== 'established') { const ts = el('tspan', { class: st === 'proposed' ? 'sp' : 'sv' }, tag); ts.textContent = ' · ' + STATUS[st].label.toUpperCase(); }
+      let yy = 37;
+      n.lines.forEach(l => { const tx = el('text', { class: 'ttl', x: 14, y: yy }, grp); tx.textContent = l; yy += 17; });
+      if (n.dlines.length) { yy += 2; n.dlines.forEach(l => { const tx = el('text', { class: 'det', x: 14, y: yy }, grp); tx.textContent = l; yy += 15; }); }
+      if (n.mlines.length) { yy += 2; n.mlines.forEach(l => { const tx = el('text', { class: 'det', x: 14, y: yy }, grp); tx.textContent = l; yy += 15; }); }
+      if (n.olines.length) { yy += 4; n.olines.forEach(l => { const tx = el('text', { class: 'own', x: 14, y: yy }, grp); tx.textContent = l; yy += 14; }); }
+      const ck = el('g', { class: 'check', transform: `translate(${n.width - 16},14)` }, grp);
+      el('circle', { r: 8 }, ck); el('path', { d: 'M-3.5 0 L-1 2.8 L4 -2.8' }, ck);
+      grp.addEventListener('click', () => { if (!moved) select(id); });
+      grp.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(id); } });
+    });
+    const side = id => { const k = layout.node(id).data.kind; return k === 'exit' || k === 'escalation' ? 1 : 0; };
+    order = g.nodes().slice().sort((a, b) => {
+      const A = g.node(a), B = g.node(b);
+      return lr ? (Math.round(A.x) - Math.round(B.x)) || (A.y - B.y)
+                : (Math.round(A.y) - Math.round(B.y)) || (side(a) - side(b)) || (A.x - B.x);
+    });
+    applySearch();
+  }
+
+  function smooth(p) {
+    if (p.length < 3) return 'M' + p.map(a => a.x + ' ' + a.y).join(' L');
+    let d = `M${p[0].x} ${p[0].y}`;
+    for (let i = 1; i < p.length - 1; i++) {
+      const last = i === p.length - 2, nx = last ? p[i + 1].x : (p[i].x + p[i + 1].x) / 2, ny = last ? p[i + 1].y : (p[i].y + p[i + 1].y) / 2;
+      d += ` Q${p[i].x} ${p[i].y} ${nx} ${ny}`;
+    }
+    return d;
+  }
+
+  const nodeById = id => cur.nodes.find(n => n.id === id);
+
+  function select(id, center = true) {
+    selected = id;
+    const ins = cur.edges.filter(e => e.to === id), outs = cur.edges.filter(e => e.from === id);
+    const near = new Set([id, ...ins.map(e => e.from), ...outs.map(e => e.to)]);
+    vp.querySelectorAll('.node').forEach(n => { n.classList.toggle('sel', n.dataset.id === id); n.classList.toggle('dim', !near.has(n.dataset.id)); });
+    vp.querySelectorAll('.edge').forEach(e => {
+      const hot = e.dataset.from === id || e.dataset.to === id;
+      e.classList.toggle('hot', hot); e.classList.toggle('dim', !hot);
+      e.querySelector('path').setAttribute('marker-end', hot ? 'url(#arrow-hot)' : 'url(#arrow)');
+    });
+    if (center) centerOn(id);
+    renderPanel();
+  }
+  function clearSel() {
+    selected = null;
+    vp.querySelectorAll('.node, .edge').forEach(n => n.classList.remove('sel', 'dim', 'hot'));
+    vp.querySelectorAll('.edge path').forEach(p => p.setAttribute('marker-end', 'url(#arrow)'));
+    renderPanel();
+  }
+
+  function progressHtml() {
+    const n = cur.nodes.length, d = cur.nodes.filter(x => done[x.id]).length;
+    return `<div class="progress"><div class="pnum">${d} of ${n} nodes marked done</div><div class="bar"><i style="width:${n ? d / n * 100 : 0}%"></i></div></div>`;
+  }
+  function renderPanel() {
+    if (!selected) {
+      const counts = { proposed: 0, validate: 0 };
+      cur.nodes.forEach(n => { if (counts[n.status] !== undefined) counts[n.status]++; });
+      const refs = [...new Set(cur.nodes.map(n => n.ref).filter(Boolean))];
+      panel.innerHTML = `
+        <div class="eyebrow"><span>Workflow ${cur.id}</span><span>·</span><span>${esc(cur.principle)}</span></div>
+        <h2>${esc(cur.name)}</h2>
+        <p>${esc(cur.intro)}</p>
+        ${counts.proposed || counts.validate ? `<p class="hint">${counts.proposed ? `${counts.proposed} proposed ${counts.proposed > 1 ? 'items need' : 'item needs'} baseline confirmation. ` : ''}${counts.validate ? `${counts.validate} ${counts.validate > 1 ? 'items depend' : 'item depends'} on Month 1 discovery.` : ''}</p>` : ''}
+        ${refs.length ? `<div><h3>Reference</h3><div class="links">${refs.map(r => `<button class="reflink" data-ref="${r}">${esc(tableById[r].title)}</button>`).join('')}</div></div>` : ''}
+        ${progressHtml()}
+        <div class="walk"><button class="primary" id="start">Walk through from the start</button></div>
+        <p class="hint">Click a node for its owner, required information and connections. Drag to pan, scroll or <kbd>+</kbd> <kbd>−</kbd> to zoom, <kbd>←</kbd> <kbd>→</kbd> to step, <kbd>Esc</kbd> to exit. Done marks are saved in this browser only.</p>`;
+      panel.querySelector('#start').onclick = () => select(order[0]);
+      wireRefs(); return;
+    }
+    const node = nodeById(selected), i = order.indexOf(selected), st = node.status || 'established';
+    const ins = cur.edges.filter(e => e.to === selected), outs = cur.edges.filter(e => e.from === selected);
+    const link = (e, other) => `<button class="link" data-go="${other}">${e.label ? `<span class="via${e.style === 'loop' ? ' loop' : ''}">${esc(e.label)}</span>` : e.style === 'loop' ? '<span class="via loop">loop</span>' : ''}<span>${esc(nodeById(other).label)}</span></button>`;
+    const color = node.type === 'decision' ? 'var(--gate)' : node.kind === 'post' ? 'var(--post)' : node.kind === 'exit' ? 'var(--exit)' : node.kind === 'escalation' ? 'var(--esc)' : 'var(--accent)';
+    panel.innerHTML = `
+      <div class="eyebrow"><span>${cur.id} · ${esc(cur.name)}</span><span class="pnum">${i + 1}/${order.length}</span></div>
+      <div class="eyebrow"><span class="chip" style="color:${color}">${node.kind ? KIND_NAME[node.kind] : TYPE_NAME[node.type]}</span>${st !== 'established' ? `<span class="chip" style="color:var(--${st === 'proposed' ? 'prop' : 'esc'})">${STATUS[st].label}</span>` : '<span class="chip" style="color:var(--muted)">Established</span>'}</div>
+      <h2>${esc(node.label)}</h2>
+      ${node.detail ? `<p>${esc(node.detail)}</p>` : ''}
+      ${node.owner ? `<dl class="kv"><dt>Owner</dt><dd>${esc(node.owner)}</dd></dl>` : ''}
+      ${st !== 'established' ? `<div class="status-note ${st}">${esc(STATUS[st].meaning)}</div>` : ''}
+      ${node.items ? `<div><h3>${esc(node.items_title || 'Details')}</h3><ul class="items">${node.items.map(m => `<li>${esc(m)}</li>`).join('')}</ul></div>` : ''}
+      ${node.ref ? `<button class="reflink" data-ref="${node.ref}">See: ${esc(tableById[node.ref].title)}</button>` : ''}
+      <label class="done-row" for="done-box"><input type="checkbox" id="done-box" ${done[selected] ? 'checked' : ''}><span>Mark as done</span></label>
+      ${ins.length ? `<div><h3>Comes from</h3><div class="links">${ins.map(e => link(e, e.from)).join('')}</div></div>` : ''}
+      ${outs.length ? `<div><h3>Leads to</h3><div class="links">${outs.map(e => link(e, e.to)).join('')}</div></div>` : ''}
+      <div class="walk"><button id="prev" ${i <= 0 ? 'disabled' : ''}>← Previous</button><button class="primary" id="next" ${i >= order.length - 1 ? 'disabled' : ''}>Next →</button></div>
+      <div class="walk"><button id="overview">Back to overview</button></div>
+      ${progressHtml()}`;
+    panel.querySelectorAll('[data-go]').forEach(b => b.onclick = () => select(b.dataset.go));
+    panel.querySelector('#prev').onclick = () => step(-1);
+    panel.querySelector('#next').onclick = () => step(1);
+    panel.querySelector('#overview').onclick = () => { clearSel(); fit(true); };
+    panel.querySelector('#done-box').onchange = ev => {
+      if (ev.target.checked) done[selected] = true; else delete done[selected];
+      store.set('crm-model-done', done);
+      vp.querySelector(`.node[data-id="${selected}"]`).classList.toggle('done', ev.target.checked);
+      buildTabs(); renderPanel();
+    };
+    wireRefs();
+  }
+  function wireRefs() { panel.querySelectorAll('[data-ref]').forEach(b => b.onclick = () => openRef(b.dataset.ref)); }
+  function step(dir) { const j = order.indexOf(selected) + dir; if (j >= 0 && j < order.length) select(order[j]); }
+
+  // Reference view
+  function buildRef() {
+    const st = (k, c) => `<div style="border-color:var(--${c})"><b>${esc(STATUS[k].label)}.</b> ${esc(STATUS[k].meaning)}</div>`;
+    refEl.innerHTML = `<div class="ref-inner">
+      <div class="ref-head">
+        <div>
+          <h2>${esc(P.name)}: ${esc(P.tagline.toLowerCase())}</h2>
+          <p>${esc(P.goal)}</p>
+          <p><b>Primary objective.</b> ${esc(P.primary_objective)}</p>
+          <p class="muted"><b>Supporting objectives.</b> ${esc(P.supporting_objectives)}</p>
+        </div>
+        <div class="statuses">${st('established', 'line')}${st('proposed', 'prop')}${st('validate', 'esc')}</div>
+      </div>
+      <nav class="toc">${TABLES.map(tb => `<button data-jump="${tb.id}">${esc(tb.title)}</button>`).join('')}</nav>
+      ${TABLES.map(tb => `<section class="tbl" id="tbl-${tb.id}">
+        <h3>${esc(tb.title)}${tb.status ? `<span class="chip" style="color:var(--${tb.status === 'proposed' ? 'prop' : 'esc'})">${esc(STATUS[tb.status].label)}</span>` : ''}</h3>
+        <p class="note">${esc(tb.section)}. ${esc(tb.note)}</p>
+        <div class="tw"><table class="${tb.id === 'raci' ? 'raci' : ''}"><thead><tr>${tb.cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead>
+        <tbody>${tb.rows.map(r => `<tr>${r.map((c, j) => `<td${tb.id === 'raci' && j && c.includes('A') ? ' class="has-a"' : ''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      </section>`).join('')}
+    </div>`;
+    refEl.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => jump(b.dataset.jump));
+  }
+  function jump(id) {
+    const s = $('tbl-' + id); if (!s) return;
+    s.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    s.classList.add('flash'); setTimeout(() => s.classList.remove('flash'), 1400);
+  }
+  function openRef(id) { setView('ref'); requestAnimationFrame(() => jump(id)); }
+
+  // Pan & zoom
+  let raf = 0;
+  function apply(anim) {
+    cancelAnimationFrame(raf);
+    const set = v => vp.setAttribute('transform', `translate(${v.x},${v.y}) scale(${v.k})`);
+    if (!anim || matchMedia('(prefers-reduced-motion: reduce)').matches || !shown) { shown = { ...t }; set(t); return; }
+    const from = { ...shown }, to = { ...t }, t0 = performance.now();
+    const tick = now => {
+      const u = Math.min(1, (now - t0) / 350), e = 1 - Math.pow(1 - u, 3);
+      shown = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, k: from.k + (to.k - from.k) * e };
+      set(shown); if (u < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  }
+  function fit(anim) {
+    const gr = layout.graph(), r = svg.getBoundingClientRect();
+    if (!r.width) return;
+    const top = 60, pad = 20;
+    const kw = (r.width - pad * 2) / gr.width, kh = (r.height - top - pad) / gr.height;
+    // Tall flows stay readable: fit the width (at least 0.7) and start at the top; drag to see the rest.
+    t.k = Math.min(1.15, Math.max(Math.min(kw, kh), Math.min(kw, 0.7)), kw);
+    t.x = (r.width - gr.width * t.k) / 2;
+    t.y = top + Math.max(0, (r.height - top - pad - gr.height * t.k) / 2);
+    apply(anim);
+  }
+  function centerOn(id) {
+    const n = layout.node(id), r = svg.getBoundingClientRect();
+    t.k = Math.max(t.k, 0.85);
+    t.x = r.width / 2 - n.x * t.k; t.y = (r.height + 40) / 2 - n.y * t.k;
+    apply(true);
+  }
+  function zoom(f, cx, cy) {
+    const r = svg.getBoundingClientRect(); cx = cx ?? r.width / 2; cy = cy ?? r.height / 2;
+    const k = Math.min(2.5, Math.max(0.2, t.k * f)); t.x = cx - (cx - t.x) * k / t.k; t.y = cy - (cy - t.y) * k / t.k; t.k = k; apply(false);
+  }
+  let drag = null, moved = false;
+  const pointers = new Map();
+  svg.addEventListener('pointerdown', e => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    moved = false; drag = { x: e.clientX, y: e.clientY, tx: t.x, ty: t.y };
+    if (pointers.size === 2) { const [a, b] = [...pointers.values()]; drag.pinch = Math.hypot(a.x - b.x, a.y - b.y); drag.k = t.k; }
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!drag) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2 && drag.pinch) {
+      const [a, b] = [...pointers.values()], r = svg.getBoundingClientRect();
+      zoom(drag.k * Math.hypot(a.x - b.x, a.y - b.y) / drag.pinch / t.k, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top); moved = true; return;
+    }
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!moved && Math.hypot(dx, dy) > 4) { moved = true; svg.classList.add('dragging'); try { svg.setPointerCapture(e.pointerId); } catch (_) {} }
+    if (moved) { t.x = drag.tx + dx; t.y = drag.ty + dy; apply(false); }
+  });
+  const end = e => { pointers.delete(e.pointerId); if (pointers.size === 0) { drag = null; svg.classList.remove('dragging'); setTimeout(() => { moved = false; }, 0); } };
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+  svg.addEventListener('click', e => { if (!moved && !e.target.closest('.node') && selected) clearSel(); });
+  svg.addEventListener('wheel', e => { e.preventDefault(); const r = svg.getBoundingClientRect(); zoom(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  $('zin').onclick = () => zoom(1.25);
+  $('zout').onclick = () => zoom(0.8);
+  $('fit').onclick = () => fit(true);
+  window.addEventListener('resize', () => { if (view === 'map' && !selected) fit(false); });
+  document.addEventListener('keydown', e => {
+    if (view !== 'map') return;
+    if (e.target === q) { if (e.key === 'Escape') { q.value = ''; applySearch(); q.blur(); } return; }
+    if (e.key === 'ArrowRight' && selected) { e.preventDefault(); step(1); }
+    else if (e.key === 'ArrowLeft' && selected) { e.preventDefault(); step(-1); }
+    else if (e.key === 'Escape' && selected) { clearSel(); fit(true); }
+    else if (e.key === '+' || e.key === '=') zoom(1.25);
+    else if (e.key === '-') zoom(0.8);
+  });
+
+  // Search: highlight matches here; Enter cycles matches, moving to other workflows when this one has none left.
+  const haystack = n => [n.label, n.detail, n.owner, ...(n.items || [])].filter(Boolean).join(' ').toLowerCase();
+  function applySearch() {
+    const s = q.value.trim().toLowerCase();
+    vp.querySelectorAll('.node').forEach(n => n.classList.toggle('match', !!s && haystack(nodeById(n.dataset.id)).includes(s)));
+  }
+  q.addEventListener('input', applySearch);
+  q.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const s = q.value.trim().toLowerCase(); if (!s) return;
+    const all = flows.flatMap(f => order && f === cur ? order.map(id => [f, nodeById(id)]) : f.nodes.map(n => [f, n])).filter(([, n]) => haystack(n).includes(s));
+    if (!all.length) return;
+    const i = all.findIndex(([f, n]) => f === cur && n.id === selected);
+    const [f, n] = all[(i + 1) % all.length];
+    if (f === cur) select(n.id); else { show(f.id, n.id); applySearch(); }
+  });
+
+  buildRef();
+  const h = (location.hash || '').slice(1);
+  const startFlow = flows.some(f => f.id.toLowerCase() === h) ? h.toUpperCase() : store.get('crm-model-tab', flows[0].id);
+  show(flows.some(f => f.id === startFlow) ? startFlow : flows[0].id);
+  if (h === 'reference') setView('ref');
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (view === 'map' && !selected) fit(false); });
+})();
+</script>
