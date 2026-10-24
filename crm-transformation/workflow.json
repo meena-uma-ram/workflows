@@ -1,0 +1,969 @@
+{
+  "name": "Global CRM Transformation Operating Model",
+  "platform": "HubSpot",
+  "duration_months": 8,
+  "countries": 8,
+  "workflows": [
+    {
+      "id": "A",
+      "name": "End-to-end customer journey",
+      "nodes": [
+        {
+          "id": "A.A1",
+          "type": "step",
+          "label": "1. Lead generation"
+        },
+        {
+          "id": "A.G1",
+          "type": "decision",
+          "label": "ICP fit AND enough info to reach the right person?"
+        },
+        {
+          "id": "A.X1",
+          "type": "step",
+          "label": "Nurture or disqualify (reason logged)"
+        },
+        {
+          "id": "A.A2",
+          "type": "step",
+          "label": "2. Research & ICP assessment"
+        },
+        {
+          "id": "A.A3",
+          "type": "step",
+          "label": "3. Personalized outreach sequence clear next action at every step"
+        },
+        {
+          "id": "A.G2",
+          "type": "decision",
+          "label": "Engaged?"
+        },
+        {
+          "id": "A.X2",
+          "type": "step",
+          "label": "Exit or nurture path"
+        },
+        {
+          "id": "A.A4",
+          "type": "step",
+          "label": "4. Discovery & meeting management"
+        },
+        {
+          "id": "A.A5",
+          "type": "step",
+          "label": "5. Structured meeting notes & action tracking needs · objections · stakeholders · decisions · owners"
+        },
+        {
+          "id": "A.A6",
+          "type": "step",
+          "label": "6. Business case & ROI validation"
+        },
+        {
+          "id": "A.G3",
+          "type": "decision",
+          "label": "Original value proposition strong?"
+        },
+        {
+          "id": "A.A6b",
+          "type": "step",
+          "label": "Investigate alternative value drivers revenue growth · retention · risk reduction"
+        },
+        {
+          "id": "A.G4",
+          "type": "decision",
+          "label": "Credible business case?"
+        },
+        {
+          "id": "A.X3",
+          "type": "step",
+          "label": "Document reason & reconsider opportunity"
+        },
+        {
+          "id": "A.A7",
+          "type": "step",
+          "label": "7. Proposal tied to business case (actively followed up)"
+        },
+        {
+          "id": "A.A8",
+          "type": "step",
+          "label": "8. Negotiation, legal review & contract signature"
+        },
+        {
+          "id": "A.A9",
+          "type": "step",
+          "label": "9. Closed-Won handoff package objectives · expected ROI · tech requirements stakeholders · risks · commitments · milestones"
+        },
+        {
+          "id": "A.A10",
+          "type": "step",
+          "label": "10. Implementation deployment & training"
+        },
+        {
+          "id": "A.A11",
+          "type": "step",
+          "label": "11. Customer Success onboarding · adoption · time-to-value"
+        },
+        {
+          "id": "A.A12",
+          "type": "step",
+          "label": "12. Measure outcomes time-to-value & customer outcomes, not just logins"
+        },
+        {
+          "id": "A.CI",
+          "type": "terminal",
+          "label": "Continuous improvement (see G)"
+        }
+      ],
+      "edges": [
+        {
+          "from": "A.A1",
+          "to": "A.G1"
+        },
+        {
+          "from": "A.G1",
+          "to": "A.X1",
+          "label": "No"
+        },
+        {
+          "from": "A.G1",
+          "to": "A.A2",
+          "label": "Yes"
+        },
+        {
+          "from": "A.A2",
+          "to": "A.A3"
+        },
+        {
+          "from": "A.A3",
+          "to": "A.G2"
+        },
+        {
+          "from": "A.G2",
+          "to": "A.X2",
+          "label": "No, sequence complete"
+        },
+        {
+          "from": "A.X2",
+          "to": "A.A3",
+          "label": "re-engages",
+          "style": "loop"
+        },
+        {
+          "from": "A.G2",
+          "to": "A.A4",
+          "label": "Yes"
+        },
+        {
+          "from": "A.A4",
+          "to": "A.A5"
+        },
+        {
+          "from": "A.A5",
+          "to": "A.A6"
+        },
+        {
+          "from": "A.A6",
+          "to": "A.G3"
+        },
+        {
+          "from": "A.G3",
+          "to": "A.A6b",
+          "label": "No"
+        },
+        {
+          "from": "A.A6b",
+          "to": "A.G4"
+        },
+        {
+          "from": "A.G4",
+          "to": "A.X3",
+          "label": "No"
+        },
+        {
+          "from": "A.G4",
+          "to": "A.A7",
+          "label": "Yes"
+        },
+        {
+          "from": "A.G3",
+          "to": "A.A7",
+          "label": "Yes"
+        },
+        {
+          "from": "A.A7",
+          "to": "A.A8"
+        },
+        {
+          "from": "A.A8",
+          "to": "A.A9"
+        },
+        {
+          "from": "A.A9",
+          "to": "A.A10"
+        },
+        {
+          "from": "A.A10",
+          "to": "A.A11"
+        },
+        {
+          "from": "A.A11",
+          "to": "A.A12"
+        },
+        {
+          "from": "A.A12",
+          "to": "A.CI"
+        },
+        {
+          "from": "A.CI",
+          "to": "A.A1",
+          "label": "process refinements",
+          "style": "loop"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Tool integration",
+      "nodes": [
+        {
+          "id": "B.E",
+          "type": "step",
+          "label": "Email"
+        },
+        {
+          "id": "B.S",
+          "type": "step",
+          "label": "Sync & capture layer no duplicate data entry"
+        },
+        {
+          "id": "B.C",
+          "type": "step",
+          "label": "Calendar"
+        },
+        {
+          "id": "B.N",
+          "type": "step",
+          "label": "Notes"
+        },
+        {
+          "id": "B.O",
+          "type": "step",
+          "label": "Other sales tools"
+        },
+        {
+          "id": "B.H",
+          "type": "datastore",
+          "label": "HubSpot CRM single source of truth"
+        },
+        {
+          "id": "B.V",
+          "type": "step",
+          "label": "Rep view: pipeline & next actions"
+        },
+        {
+          "id": "B.R",
+          "type": "step",
+          "label": "Leadership reporting"
+        },
+        {
+          "id": "B.SE",
+          "type": "step",
+          "label": "Less admin, better sales execution"
+        }
+      ],
+      "edges": [
+        {
+          "from": "B.E",
+          "to": "B.S"
+        },
+        {
+          "from": "B.C",
+          "to": "B.S"
+        },
+        {
+          "from": "B.N",
+          "to": "B.S"
+        },
+        {
+          "from": "B.O",
+          "to": "B.S"
+        },
+        {
+          "from": "B.S",
+          "to": "B.H"
+        },
+        {
+          "from": "B.H",
+          "to": "B.V"
+        },
+        {
+          "from": "B.H",
+          "to": "B.R"
+        },
+        {
+          "from": "B.V",
+          "to": "B.SE"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Global standard, local flexibility",
+      "nodes": [
+        {
+          "id": "C.G1",
+          "type": "step",
+          "label": "System architecture",
+          "group": "Global RevOps owns"
+        },
+        {
+          "id": "C.G2",
+          "type": "step",
+          "label": "Core data structures",
+          "group": "Global RevOps owns"
+        },
+        {
+          "id": "C.G3",
+          "type": "step",
+          "label": "Global pipeline definitions",
+          "group": "Global RevOps owns"
+        },
+        {
+          "id": "C.G4",
+          "type": "step",
+          "label": "KPI definitions",
+          "group": "Global RevOps owns"
+        },
+        {
+          "id": "C.G5",
+          "type": "step",
+          "label": "Minimum standards",
+          "group": "Global RevOps owns"
+        },
+        {
+          "id": "C.L1",
+          "type": "step",
+          "label": "Day-to-day execution",
+          "group": "Country leadership owns"
+        },
+        {
+          "id": "C.L2",
+          "type": "step",
+          "label": "Local practice adaptations within agreed boundaries",
+          "group": "Country leadership owns"
+        },
+        {
+          "id": "C.EX",
+          "type": "step",
+          "label": "Local experiment"
+        },
+        {
+          "id": "C.EV",
+          "type": "step",
+          "label": "RevOps evaluates results"
+        },
+        {
+          "id": "C.D",
+          "type": "decision",
+          "label": "Evidence supports wider adoption?"
+        },
+        {
+          "id": "C.AD",
+          "type": "step",
+          "label": "Proposed as global standard (via Change Control, see D)"
+        },
+        {
+          "id": "C.KL",
+          "type": "step",
+          "label": "Stays local or retired"
+        }
+      ],
+      "edges": [
+        {
+          "from": "C.GLOBAL",
+          "to": "C.L2",
+          "label": "boundaries"
+        },
+        {
+          "from": "C.L2",
+          "to": "C.EX"
+        },
+        {
+          "from": "C.EX",
+          "to": "C.EV"
+        },
+        {
+          "from": "C.EV",
+          "to": "C.D"
+        },
+        {
+          "from": "C.D",
+          "to": "C.AD",
+          "label": "Yes"
+        },
+        {
+          "from": "C.D",
+          "to": "C.KL",
+          "label": "No"
+        },
+        {
+          "from": "C.AD",
+          "to": "C.GLOBAL"
+        }
+      ],
+      "groups": [
+        {
+          "id": "C.GLOBAL",
+          "label": "Global RevOps owns"
+        },
+        {
+          "id": "C.LOCAL",
+          "label": "Country leadership owns"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "name": "Change control and decision rights",
+      "nodes": [
+        {
+          "id": "D.R",
+          "type": "step",
+          "label": "Change request driver · approver · consulted · informed"
+        },
+        {
+          "id": "D.RO",
+          "type": "step",
+          "label": "RevOps protects architecture & data integrity",
+          "group": "CRM Change Control Board"
+        },
+        {
+          "id": "D.SA",
+          "type": "step",
+          "label": "Sales & Customer Success define needs, challenge friction",
+          "group": "CRM Change Control Board"
+        },
+        {
+          "id": "D.LE",
+          "type": "step",
+          "label": "Legal & Privacy protect compliance",
+          "group": "CRM Change Control Board"
+        },
+        {
+          "id": "D.CL",
+          "type": "step",
+          "label": "Country leaders local knowledge",
+          "group": "CRM Change Control Board"
+        },
+        {
+          "id": "D.AS",
+          "type": "step",
+          "label": "Assess impact"
+        },
+        {
+          "id": "D.CF",
+          "type": "decision",
+          "label": "Major conflict?"
+        },
+        {
+          "id": "D.ESG",
+          "type": "step",
+          "label": "Executive steering group decides"
+        },
+        {
+          "id": "D.T",
+          "type": "step",
+          "label": "Test"
+        },
+        {
+          "id": "D.DOC",
+          "type": "step",
+          "label": "Document"
+        },
+        {
+          "id": "D.AP",
+          "type": "decision",
+          "label": "Approved?"
+        },
+        {
+          "id": "D.RJ",
+          "type": "step",
+          "label": "Rejected / returned with rationale"
+        },
+        {
+          "id": "D.REL",
+          "type": "step",
+          "label": "Controlled release"
+        },
+        {
+          "id": "D.INF",
+          "type": "step",
+          "label": "Inform affected teams"
+        }
+      ],
+      "edges": [
+        {
+          "from": "D.R",
+          "to": "D.CCB"
+        },
+        {
+          "from": "D.CCB",
+          "to": "D.AS"
+        },
+        {
+          "from": "D.AS",
+          "to": "D.CF"
+        },
+        {
+          "from": "D.CF",
+          "to": "D.ESG",
+          "label": "Yes"
+        },
+        {
+          "from": "D.ESG",
+          "to": "D.T"
+        },
+        {
+          "from": "D.CF",
+          "to": "D.T",
+          "label": "No"
+        },
+        {
+          "from": "D.T",
+          "to": "D.DOC"
+        },
+        {
+          "from": "D.DOC",
+          "to": "D.AP"
+        },
+        {
+          "from": "D.AP",
+          "to": "D.RJ",
+          "label": "No"
+        },
+        {
+          "from": "D.AP",
+          "to": "D.REL",
+          "label": "Yes"
+        },
+        {
+          "from": "D.REL",
+          "to": "D.INF"
+        }
+      ],
+      "groups": [
+        {
+          "id": "D.CCB",
+          "label": "CRM Change Control Board"
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "name": "Country-by-country rollout",
+      "nodes": [
+        {
+          "id": "E.S",
+          "type": "terminal",
+          "label": "Next country"
+        },
+        {
+          "id": "E.P1",
+          "type": "step",
+          "label": "1. Map & validate existing process"
+        },
+        {
+          "id": "E.P2",
+          "type": "step",
+          "label": "2. Design global workflow + country-specific adaptations"
+        },
+        {
+          "id": "E.P3",
+          "type": "step",
+          "label": "3. Integrate tools & configure HubSpot"
+        },
+        {
+          "id": "E.P4",
+          "type": "step",
+          "label": "4. Test workflows, data quality, reporting & handoffs"
+        },
+        {
+          "id": "E.P5",
+          "type": "step",
+          "label": "5. Train users & prepare local support"
+        },
+        {
+          "id": "E.GT",
+          "type": "decision",
+          "label": "Technical AND business ready?"
+        },
+        {
+          "id": "E.FIX",
+          "type": "step",
+          "label": "Close gaps"
+        },
+        {
+          "id": "E.P6",
+          "type": "step",
+          "label": "6. Joint sign-off RevOps + country leadership"
+        },
+        {
+          "id": "E.P7",
+          "type": "step",
+          "label": "7. Launch"
+        },
+        {
+          "id": "E.P8",
+          "type": "step",
+          "label": "8. Hypercare (2–4 weeks)"
+        },
+        {
+          "id": "E.ST",
+          "type": "decision",
+          "label": "System stable?"
+        },
+        {
+          "id": "E.P9",
+          "type": "step",
+          "label": "9. Transition to standard support"
+        },
+        {
+          "id": "E.P10",
+          "type": "step",
+          "label": "10. Evaluate performance"
+        },
+        {
+          "id": "E.MORE",
+          "type": "decision",
+          "label": "More countries remaining?"
+        },
+        {
+          "id": "E.DONE",
+          "type": "terminal",
+          "label": "All 8 countries live"
+        }
+      ],
+      "edges": [
+        {
+          "from": "E.S",
+          "to": "E.P1"
+        },
+        {
+          "from": "E.P1",
+          "to": "E.P2"
+        },
+        {
+          "from": "E.P2",
+          "to": "E.P3"
+        },
+        {
+          "from": "E.P3",
+          "to": "E.P4"
+        },
+        {
+          "from": "E.P4",
+          "to": "E.P5"
+        },
+        {
+          "from": "E.P5",
+          "to": "E.GT"
+        },
+        {
+          "from": "E.GT",
+          "to": "E.FIX",
+          "label": "No"
+        },
+        {
+          "from": "E.FIX",
+          "to": "E.P4"
+        },
+        {
+          "from": "E.GT",
+          "to": "E.P6",
+          "label": "Yes"
+        },
+        {
+          "from": "E.P6",
+          "to": "E.P7"
+        },
+        {
+          "from": "E.P7",
+          "to": "E.P8"
+        },
+        {
+          "from": "E.P8",
+          "to": "E.ST"
+        },
+        {
+          "from": "E.ST",
+          "to": "E.P8",
+          "label": "No"
+        },
+        {
+          "from": "E.ST",
+          "to": "E.P9",
+          "label": "Yes"
+        },
+        {
+          "from": "E.P9",
+          "to": "E.P10"
+        },
+        {
+          "from": "E.P10",
+          "to": "E.MORE"
+        },
+        {
+          "from": "E.MORE",
+          "to": "E.S",
+          "label": "Yes"
+        },
+        {
+          "from": "E.MORE",
+          "to": "E.DONE",
+          "label": "No"
+        }
+      ]
+    },
+    {
+      "id": "F",
+      "name": "Balanced scorecard",
+      "nodes": [
+        {
+          "id": "F.AD",
+          "type": "step",
+          "label": "📊 Adoption Are employees using the intended workflows?"
+        },
+        {
+          "id": "F.DQ",
+          "type": "step",
+          "label": "📊 Data quality Can leadership trust the CRM and its reports?"
+        },
+        {
+          "id": "F.PE",
+          "type": "step",
+          "label": "📊 Process efficiency Are admin effort and delays decreasing?"
+        },
+        {
+          "id": "F.BO",
+          "type": "step",
+          "label": "📊 Business outcomes Conversion · pipeline health · sales cycle · revenue"
+        },
+        {
+          "id": "F.SC",
+          "type": "summary",
+          "label": "Global scorecard consolidated by RevOps"
+        }
+      ],
+      "edges": [
+        {
+          "from": "F.AD",
+          "to": "F.SC"
+        },
+        {
+          "from": "F.DQ",
+          "to": "F.SC"
+        },
+        {
+          "from": "F.PE",
+          "to": "F.SC"
+        },
+        {
+          "from": "F.BO",
+          "to": "F.SC"
+        }
+      ]
+    },
+    {
+      "id": "G",
+      "name": "Continuous improvement cadence",
+      "nodes": [
+        {
+          "id": "G.W",
+          "type": "step",
+          "label": "Weekly country reviews identify operational problems, unblock teams"
+        },
+        {
+          "id": "G.M",
+          "type": "step",
+          "label": "Monthly global reviews compare trends, recurring issues, evaluate successful local practices"
+        },
+        {
+          "id": "G.Q",
+          "type": "step",
+          "label": "Quarterly executive reviews business impact, resources, readiness for expansion"
+        },
+        {
+          "id": "G.CHK",
+          "type": "decision",
+          "label": "Mandatory standard missed?"
+        },
+        {
+          "id": "G.CA",
+          "type": "step",
+          "label": "RevOps sets corrective actions and deadline"
+        },
+        {
+          "id": "G.EXE",
+          "type": "step",
+          "label": "Country leadership executes"
+        },
+        {
+          "id": "G.RE",
+          "type": "decision",
+          "label": "Resolved by deadline?"
+        },
+        {
+          "id": "G.ESC",
+          "type": "step",
+          "label": "Escalate to executive steering group"
+        }
+      ],
+      "edges": [
+        {
+          "from": "G.W",
+          "to": "G.M"
+        },
+        {
+          "from": "G.M",
+          "to": "G.Q"
+        },
+        {
+          "from": "G.Q",
+          "to": "G.W",
+          "label": "priorities",
+          "style": "loop"
+        },
+        {
+          "from": "G.W",
+          "to": "G.CHK"
+        },
+        {
+          "from": "G.CHK",
+          "to": "G.CA",
+          "label": "Yes"
+        },
+        {
+          "from": "G.CA",
+          "to": "G.EXE"
+        },
+        {
+          "from": "G.EXE",
+          "to": "G.RE"
+        },
+        {
+          "from": "G.RE",
+          "to": "G.W",
+          "label": "Yes"
+        },
+        {
+          "from": "G.RE",
+          "to": "G.ESC",
+          "label": "No (repeated failure)"
+        }
+      ]
+    },
+    {
+      "id": "H",
+      "name": "Guiding principles",
+      "nodes": [
+        {
+          "id": "H.GS",
+          "type": "step",
+          "label": "Global standards"
+        },
+        {
+          "id": "H.CO",
+          "type": "step",
+          "label": "Consistency"
+        },
+        {
+          "id": "H.LO",
+          "type": "step",
+          "label": "Local ownership"
+        },
+        {
+          "id": "H.FL",
+          "type": "step",
+          "label": "Flexibility"
+        },
+        {
+          "id": "H.CA",
+          "type": "step",
+          "label": "Clear accountability"
+        },
+        {
+          "id": "H.AC",
+          "type": "step",
+          "label": "Action"
+        },
+        {
+          "id": "H.RD",
+          "type": "step",
+          "label": "Reliable data"
+        },
+        {
+          "id": "H.VI",
+          "type": "step",
+          "label": "Visibility"
+        },
+        {
+          "id": "H.CI",
+          "type": "step",
+          "label": "Continuous improvement"
+        },
+        {
+          "id": "H.SC",
+          "type": "step",
+          "label": "Scale"
+        },
+        {
+          "id": "H.OS",
+          "type": "terminal",
+          "label": "An operating system for commercial growth"
+        }
+      ],
+      "edges": [
+        {
+          "from": "H.GS",
+          "to": "H.CO"
+        },
+        {
+          "from": "H.LO",
+          "to": "H.FL"
+        },
+        {
+          "from": "H.CA",
+          "to": "H.AC"
+        },
+        {
+          "from": "H.RD",
+          "to": "H.VI"
+        },
+        {
+          "from": "H.CI",
+          "to": "H.SC"
+        },
+        {
+          "from": "H.CO",
+          "to": "H.OS"
+        },
+        {
+          "from": "H.FL",
+          "to": "H.OS"
+        },
+        {
+          "from": "H.AC",
+          "to": "H.OS"
+        },
+        {
+          "from": "H.VI",
+          "to": "H.OS"
+        },
+        {
+          "from": "H.SC",
+          "to": "H.OS"
+        }
+      ]
+    }
+  ]
+}
