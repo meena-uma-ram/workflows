@@ -6,6 +6,8 @@ Guiding question: **How do we help salespeople spend less time on administration
 
 The model is split into connected sub-workflows. Each diagram below is a node graph (rendered by GitHub's Mermaid support). The same nodes and edges are available in machine-readable form in [`workflow.json`](workflow.json).
 
+**Interactive version:** [`index.html`](index.html) is a self-contained node map of all eight sub-workflows. Download it and open it in a browser (or serve the repo with GitHub Pages). It supports pan and zoom, click-through to each node's inputs and outputs, a step-by-step walk-through, search, and per-node "done" tracking saved in your browser.
+
 | # | Sub-workflow | Source principle |
 | --- | --- | --- |
 | A | [End-to-end customer journey](#a-end-to-end-customer-journey) | 1, 5, 6 |
